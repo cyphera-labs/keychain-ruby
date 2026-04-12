@@ -19,6 +19,8 @@ Gem::Specification.new do |spec|
   spec.metadata["homepage_uri"]    = spec.homepage
   spec.metadata["source_code_uri"] = spec.homepage
 
+  spec.add_development_dependency "aws-sdk-kms", "~> 1.0"
+  spec.add_development_dependency "google-cloud-kms", "~> 2.0"
   spec.add_development_dependency "minitest", "~> 5.0"
   spec.add_development_dependency "rake", "~> 13.0"
 end
