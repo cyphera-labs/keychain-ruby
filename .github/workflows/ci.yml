@@ -1,8 +1,10 @@
-name: test
+name: CI
 
 on:
   push:
+    branches: [main]
   pull_request:
+    branches: [main]
 
 jobs:
   unit:
@@ -12,13 +14,59 @@ jobs:
       matrix:
         ruby-version: ["3.1", "3.2", "3.3"]
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@v1
+      - uses: actions/checkout@v6
+      - uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby-version }}
           bundler-cache: true
+      - run: bundle exec ruby -Itest test/test_memory_provider.rb
 
-      - name: Run unit tests
-        run: bundle exec ruby -Itest test/test_memory_provider.rb
+  integration:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    services:
+      vault:
+        image: hashicorp/vault:1.18
+        ports: ["8200:8200"]
+        env:
+          VAULT_DEV_ROOT_TOKEN_ID: root
+          VAULT_DEV_LISTEN_ADDRESS: 0.0.0.0:8200
+        options: >-
+          --cap-add IPC_LOCK
+          --health-cmd "vault status"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 15
+      localstack:
+        image: localstack/localstack:3
+        ports: ["4566:4566"]
+        env:
+          SERVICES: kms
+        options: >-
+          --health-cmd "curl -sf http://localhost:4566/_localstack/health"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+      - name: Install cloud SDK gems
+        run: gem install aws-sdk-kms
+      - name: Seed Vault
+        run: |
+          curl -sf -X POST http://localhost:8200/v1/secret/data/test-key \
+            -H "X-Vault-Token: root" \
+            -H "Content-Type: application/json" \
+            -d '{"data":{"material":"2B7E151628AED2A6ABF7158809CF4F3C","version":1,"status":"active"}}'
+      - name: Run integration tests
+        run: bundle exec ruby -Itest -Ilib -e "Dir['test/test_*.rb'].each { |f| require_relative f }"
+        env:
+          VAULT_ADDR: http://localhost:8200
+          VAULT_TOKEN: root
+          AWS_ACCESS_KEY_ID: test
+          AWS_SECRET_ACCESS_KEY: test
+          AWS_DEFAULT_REGION: us-east-1
+          AWS_ENDPOINT_URL: http://localhost:4566
