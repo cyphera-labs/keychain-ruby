@@ -1,5 +1,8 @@
 # cyphera-keychain (Ruby)
 
+[![CI](https://github.com/cyphera-labs/keychain-ruby/actions/workflows/ci.yml/badge.svg)](https://github.com/cyphera-labs/keychain-ruby/actions/workflows/ci.yml)
+[![Security](https://github.com/cyphera-labs/keychain-ruby/actions/workflows/codeql.yml/badge.svg)](https://github.com/cyphera-labs/keychain-ruby/actions/workflows/codeql.yml)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
 Key provider abstraction for Cyphera encryption SDKs.
 
 ## Installation
