@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |spec|
   spec.name          = "cyphera-keychain"
-  spec.version       = "0.1.0"
+  spec.version       = "0.0.1.alpha1"
   spec.authors       = ["Cyphera"]
   spec.email         = ["sdk@cyphera.dev"]
 
